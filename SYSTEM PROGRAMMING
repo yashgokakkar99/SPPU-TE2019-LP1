@@ -1,0 +1,474 @@
+Pass1
+import java.io.*;
+import java.util.*;
+
+class tables{
+    HashMap<String, Integer> AD,RG,IS,CC,DL;
+    // Data Structure initialization
+    tables(){
+        AD=new HashMap<>();
+		CC = new HashMap<>();
+		IS = new HashMap<>();
+		RG = new HashMap<>();
+		DL=new HashMap<String, Integer>();
+		// Declarative Statements
+		DL.put("DC", 01);
+		DL.put("DS", 02);
+		// Imperative Statements
+		IS.put("STOP",0);
+		IS.put("ADD",1);
+		IS.put("SUB",2);
+		IS.put("MULT",3);
+		IS.put("MOVER",4);
+		IS.put("MOVEM",5);
+		IS.put("COMP",6);
+		IS.put("BC",7);
+		IS.put("DIV",8);
+		IS.put("READ",9);
+		IS.put("PRINT",10);
+		// Conditional Statements
+		CC.put("LT",1);
+		CC.put("LE",2);
+		CC.put("EQ",3);
+		CC.put("GT",4);
+		CC.put("GE",5);
+		CC.put("ANY",6);
+		// Assembler Directives
+		AD.put("START",1);
+		AD.put("END",2);
+		AD.put("ORIGIN",3);
+		AD.put("EQU",4);
+		AD.put("LTORG",5);
+		// Registers
+		RG.put("AREG",1);
+		RG.put("BREG",2);
+		RG.put("CREG",3);
+		RG.put("DREG",4);
+		
+    }
+    public void checkString(String str,int index)
+    {
+        
+        String operatorsArray[] = null;
+        str = str.replaceAll("[,]*","");
+       // System.out.println(str);
+        if(str.contains("+"))
+        {
+            // System.out.println("Match found...");
+            operatorsArray = str.split("\\+");
+            for(String str1: operatorsArray)
+            {
+                // System.out.println(str1);
+            }
+           
+            // System.out.println( operatorsArray[0].getClass().getSimpleName());
+            str = operatorsArray[0];
+            
+        }
+        if(AD.containsKey(str))
+        {
+            System.out.print("("+ "AD" +","+ AD.get(str)+") ");
+        }
+        else if(IS.containsKey(str))
+        {
+            System.out.print("("+ "IS" +","+ IS.get(str)+") ");
+        }
+        else if(DL.containsKey(str))
+        {
+            System.out.print("("+ "DL" +","+ DL.get(str)+") ");
+        }
+        else if(CC.containsKey(str))
+        {
+            System.out.print("("+ "CC" +","+ CC.get(str)+") ");
+        }
+        else if(RG.containsKey(str))
+        {
+            
+            System.out.print("(" + RG.get(str)+") ");
+        }
+        else{
+            try{
+                
+                    int a = Integer.parseInt(str);
+                    System.out.print("("+ "C" +","+ a +") ");
+            }
+            catch(Exception e)
+            {
+                if(!str.isEmpty())
+                {
+                    if(str.matches("[a-zA-Z0-9]*"))
+                    {
+                        if(index > 0)
+                        System.out.print("("+ "S" +","+ str +") ");
+                    }
+                    else{
+                        System.out.print("("+ "L" +","+ str +") ");
+                    }
+                }
+            }
+        }
+    }
+    public void display(){
+        // AD.entrySet().forEach(entry->{
+        //     System.out.println(entry.getKey()+" "+entry.getValue());
+        //     });
+    }
+}
+public class Main 
+{
+	public static void main(String[] args) throws Exception {
+		System.out.println("*** PASS 1 ASSEMBLER ***\n\n");
+		tables t1 = new tables();
+		t1.display();
+		// Create output file...
+		FileReader f1 = new FileReader("./myFile.txt");
+		BufferedReader bf = new BufferedReader(f1);
+		String line = null;
+		int count = 1;
+		String arr[];
+		while((line = bf.readLine())!=null)
+		{
+		    arr = line.split("\t");
+		   System.out.print("Len: "+arr.length);
+		    System.out.print("");
+		  
+		    for(int i=0;i<arr.length;i++)
+		    {
+		        if(arr[i].trim()!=null)
+		        {
+		            arr[i]=arr[i].trim();
+		          //System.out.print(arr[i]+" ");
+		            // Call to checkString
+		            t1.checkString(arr[i],i);
+		            //  wr.write(arr[i]+" ");
+		        }
+		    }
+		    System.out.println();
+		    arr = null;
+		  //  System.out.println(i + " " + line);
+		    count++;
+		}
+		f1.close();
+	}
+}
+/*
+	START	100
+A	DS	3	
+L1	MOVER	AREG,	B
+	ADD	    AREG,	C
+	MOVEM	AREG,	D
+D	EQU	A+1
+L2	PRINT	D
+	ORIGIN	L2+1
+	STOP
+B	DC	'19'
+C	DC	17
+	END
+*/
+
+Pass2
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+
+public class Main {
+	public static void main(String[] Args) throws IOException{
+		 BufferedReader b1 = new BufferedReader(new FileReader("intermediate.txt"));
+	     BufferedReader b2 = new BufferedReader(new FileReader("symtab.txt"));
+	     BufferedReader b3 = new BufferedReader(new FileReader("littab.txt"));
+	     FileWriter f1 = new FileWriter("Pass2.txt");
+	     HashMap<Integer, String> symSymbol = new HashMap<Integer, String>();
+	     HashMap<Integer, String> litSymbol = new HashMap<Integer, String>();
+	     HashMap<Integer, String> litAddr = new HashMap<Integer, String>();
+	     String s;
+	     int symtabPointer=1,littabPointer=1,offset;
+	     System.out.println("\n PASS 2 ASSEMBLER \n");
+	     while((s=b2.readLine())!=null){
+	    	 String word[]=s.split("\t\t\t");
+	    	 symSymbol.put(symtabPointer++,word[1]);
+	     }
+	     while((s=b3.readLine())!=null){
+	    	 String word[]=s.split("\t\t");
+	    	 litSymbol.put(littabPointer,word[0]);
+	    	 litAddr.put(littabPointer++,word[1]);
+	     }
+	     while((s=b1.readLine())!=null){
+	    	 if(s.substring(1,6).compareToIgnoreCase("IS,00")==0){
+	    		 f1.write("+ 00 0 000\n");
+	    		 System.out.println("+ 00 0 000\n");
+	    	 }
+	    	 else if(s.substring(1,3).compareToIgnoreCase("IS")==0){
+	    		 f1.write("+ "+s.substring(4,6)+" ");
+	    		 System.out.print("+ "+s.substring(4,6)+" ");
+	    		 if(s.charAt(9)==')'){
+	    			 f1.write(s.charAt(8)+" ");
+	    			 System.out.print(s.charAt(8)+" ");
+	    			 offset=3;
+	    		 }
+	    		 else{
+	    			 f1.write("0 ");
+	    			 System.out.print("0 ");
+	    			 offset=0;
+	    		 }
+	    		 if(s.charAt(8+offset)=='S')
+    			{	 f1.write(symSymbol.get(Integer.parseInt(s.substring(10+offset,s.length()-1)))+"\n");
+    				 System.out.print(symSymbol.get(Integer.parseInt(s.substring(10+offset,s.length()-1)))+"\n");
+    			}
+    			 else
+    	 		{	 f1.write(litAddr.get(Integer.parseInt(s.substring(10+offset,s.length()-1)))+"\n");
+    	 			 System.out.print(litAddr.get(Integer.parseInt(s.substring(10+offset,s.length()-1)))+"\n");
+    	   	}} 
+	    	 else if(s.substring(1,6).compareToIgnoreCase("DL,01")==0){
+	    		 String s1=s.substring(10,s.length()-1),s2="";
+	    		 for(int i=0;i<3-s1.length();i++)
+	    			 s2+="0";
+	    		 s2+=s1;
+	    		 f1.write("+ 00 0 "+s2+"\n");
+	    		 System.out.println("+ 00 0 "+s2+"\n");
+	    	 }
+	    	 else{
+	    		 f1.write("\n");
+	    		 System.out.print("\n");
+	    	 }
+	     }
+	     f1.close();
+	     b1.close();
+	     b2.close();
+	     b3.close();
+	}
+}
+
+Mac1
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+
+public class Main {
+
+	public static void main(String[] args) throws IOException{
+		BufferedReader br=new BufferedReader(new FileReader("macro_input.asm"));
+		
+		FileWriter mnt=new FileWriter("mnt.txt");
+		FileWriter mdt=new FileWriter("mdt.txt");
+		FileWriter kpdt=new FileWriter("kpdt.txt");
+		FileWriter pnt=new FileWriter("pntab.txt");
+		FileWriter ir=new FileWriter("intermediate.txt");
+		LinkedHashMap<String, Integer> pntab=new LinkedHashMap<>();
+		String line;
+		String Macroname = null;
+		int mdtp=1,kpdtp=0,paramNo=1,pp=0,kp=0,flag=0;
+		while((line=br.readLine())!=null)
+		{
+			
+			String parts[]=line.split("\\s+");
+			if(parts[0].equalsIgnoreCase("MACRO"))
+			{
+				flag=1;
+				line=br.readLine();
+				parts=line.split("\\s+");
+				Macroname=parts[0];
+				if(parts.length<=1)
+				{
+					mnt.write(parts[0]+"\t"+pp+"\t"+kp+"\t"+mdtp+"\t"+(kp==0?kpdtp:(kpdtp+1))+"\n");
+					continue;
+				}
+				for(int i=1;i<parts.length;i++) //processing of parameters
+				{
+					parts[i]=parts[i].replaceAll("[&,]", "");
+					//System.out.println(parts[i]);
+					if(parts[i].contains("="))
+					{
+						++kp;
+						String keywordParam[]=parts[i].split("=");
+						pntab.put(keywordParam[0], paramNo++);
+						if(keywordParam.length==2)
+						{
+							kpdt.write(keywordParam[0]+"\t"+keywordParam[1]+"\n");
+						}
+						else
+						{
+							kpdt.write(keywordParam[0]+"\t-\n");
+						}
+					}
+					else
+					{
+						pntab.put(parts[i], paramNo++);
+						pp++;
+					}
+				}
+				mnt.write(parts[0]+"\t"+pp+"\t"+kp+"\t"+mdtp+"\t"+(kp==0?kpdtp:(kpdtp+1))+"\n");
+				kpdtp=kpdtp+kp;
+				//System.out.println("KP="+kp);
+				
+				
+			}
+			else if(parts[0].equalsIgnoreCase("MEND"))
+			{
+				mdt.write(line+"\n");
+				flag=kp=pp=0;
+				mdtp++;
+				paramNo=1;
+				pnt.write(Macroname+":\t");
+				Iterator<String> itr=pntab.keySet().iterator();
+				while(itr.hasNext())
+				{
+					pnt.write(itr.next()+"\t");
+				}
+				pnt.write("\n");
+				pntab.clear();
+			}
+			else if(flag==1)
+			{
+				for(int i=0;i<parts.length;i++)
+				{
+					if(parts[i].contains("&"))
+					{
+						parts[i]=parts[i].replaceAll("[&,]", "");
+						mdt.write("(P,"+pntab.get(parts[i])+")\t");
+					}
+					else
+					{
+						mdt.write(parts[i]+"\t");
+					}
+				}
+				mdt.write("\n");
+				mdtp++;
+			}
+			else
+			{
+				ir.write(line+"\n");
+			}
+		}
+		br.close();
+		mdt.close();
+		mnt.close();
+		ir.close();
+		pnt.close();
+		kpdt.close();
+		System.out.println("MAcro PAss1 Processing done. :)");
+	}
+
+}
+
+Mac2
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.HashMap;
+import java.util.Vector;
+
+public class Main {
+
+	public static void main(String[] args) throws Exception {
+		BufferedReader irb=new BufferedReader(new FileReader("intermediate.txt"));
+		BufferedReader mdtb=new BufferedReader(new FileReader("mdt.txt"));
+		BufferedReader kpdtb=new BufferedReader(new FileReader("kpdt.txt"));
+		BufferedReader mntb=new BufferedReader(new FileReader("mnt.txt"));
+		
+		FileWriter fr=new FileWriter("pass2.txt");
+		
+		HashMap<String, MNTEntry> mnt=new HashMap<>();
+		HashMap<Integer, String> aptab=new HashMap<>();
+		HashMap<String,Integer> aptabInverse=new HashMap<>();
+		
+		Vector<String>mdt=new Vector<String>();
+		Vector<String>kpdt=new Vector<String>();
+		
+		int pp,kp,mdtp,kpdtp,paramNo;
+		String line;
+		while((line=mdtb.readLine())!=null)
+		{
+			mdt.addElement(line);
+		}
+		while((line=kpdtb.readLine())!=null)
+		{
+			kpdt.addElement(line);
+		}
+		while((line=mntb.readLine())!=null)
+		{
+			String parts[]=line.split("\\s+");
+			mnt.put(parts[0], new MNTEntry(parts[0], Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4])));
+			
+		}
+		
+		while((line=irb.readLine())!=null)
+		{
+			String []parts=line.split("\\s+");
+			if(mnt.containsKey(parts[0]))
+			{
+				pp=mnt.get(parts[0]).getPp();
+				kp=mnt.get(parts[0]).getKp();
+				kpdtp=mnt.get(parts[0]).getKpdtp();
+				mdtp=mnt.get(parts[0]).getMdtp();
+				paramNo=1;
+				for(int i=0;i<pp;i++)
+				{ 
+					parts[paramNo]=parts[paramNo].replace(",", "");
+					aptab.put(paramNo, parts[paramNo]);
+					aptabInverse.put(parts[paramNo], paramNo);
+					paramNo++;
+				}
+				int j=kpdtp-1;
+				for(int i=0;i<kp;i++)
+				{
+					String temp[]=kpdt.get(j).split("\t");
+					aptab.put(paramNo,temp[1]);
+					aptabInverse.put(temp[0],paramNo);
+					j++;
+					paramNo++;
+				}
+				
+				for(int i=pp+1;i<parts.length;i++)
+				{
+					parts[i]=parts[i].replace(",", "");
+					String splits[]=parts[i].split("=");
+					String name=splits[0].replaceAll("&", "");
+					aptab.put(aptabInverse.get(name),splits[1]);
+				}
+				int i=mdtp-1;
+				while(!mdt.get(i).equalsIgnoreCase("MEND"))
+				{
+					String splits[]=mdt.get(i).split("\\s+");
+					fr.write("+");
+					for(int k=0;k<splits.length;k++)
+					{
+						if(splits[k].contains("(P,"))
+						{
+							splits[k]=splits[k].replaceAll("[^0-9]", "");//not containing number
+							String value=aptab.get(Integer.parseInt(splits[k]));
+							fr.write(value+"\t");
+						}
+						else
+						{
+							fr.write(splits[k]+"\t");
+						}
+					}
+					fr.write("\n");	
+					i++;
+				}
+				
+				aptab.clear();
+				aptabInverse.clear();
+			}
+			else
+			{
+				fr.write(line+"\n");
+			}
+			
+	}
+	
+	fr.close();
+	mntb.close();
+	mdtb.close();
+	kpdtb.close();
+	irb.close();
+	System.out.println("MAcro PAss2 Processing done. :)");
+	}
+	
+}
+
